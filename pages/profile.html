@@ -21,13 +21,13 @@
 <body class="containter">
     <div class="toast toastself" role="alert" aria-live="assertive" aria-atomic="true" id="liveToast">
         <div class="toast-header">
-          <img src="../images/firebase_logo.png" class="rounded me-2" alt="..." width="20" height="20">
+          <img id="toastImg" src="..." class="rounded me-2" alt="..." width="20" height="20">
           <strong class="me-auto">MonoTrade</strong>
           <small class="text-body-secondary">just now</small>
           <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
-        <div class="toast-body">
-            ✅ Profile updated
+        <div class="toast-body" id="toastMess">
+            Profile updated
         </div>
     </div>
     <div id="Home">
@@ -128,6 +128,37 @@
             showPPic();
         })
     }
+
+    function toastShow(type, mess) {
+        var toast_options = {
+            animation : true,
+            delay : 5000
+        };
+        var toastHTMLelem = document.getElementById("liveToast");
+        var toastImg = document.getElementById("toastImg")
+        document.getElementById("toastMess").innerHTML = mess
+        var img_src = (type == "succes" ? "../images/check-circle-fill.svg" : "../images/x-circle-fill.svg")
+        if (type == "success") {
+            img_src = "../images/check-circle-fill.svg"
+        } else if (type == "error") {
+            img_src = "../images/x-circle-fill.svg"
+        } else if (type == "warning") {
+            img_src = "../images/warn-circle-fill.svg"
+        } else if (type == "info") {
+            img_src = "../images/info-circle-fill.svg"
+        } else {
+            swal({
+                type: 'error',
+                title: 'Error',
+                text: "invalid toast image type",
+            })
+        }
+        toastImg.setAttribute("src", img_src)
+
+        var toastElem = new bootstrap.Toast(toastHTMLelem, toast_options);
+        toastElem.show()
+    }
+    
     onAuthStateChanged(auth, (user)=>{
         if (user) {
         //   User is signed in.
@@ -167,13 +198,7 @@
                 userBio: userBio,
             }
             update(child(ref_database(database), uid), userData).then((value) => {
-                var toast_options = {
-                    animation : true,
-                    delay : 5000
-                };
-                var toastHTMLelem = document.getElementById("liveToast");
-                var toastElem = new bootstrap.Toast(toastHTMLelem, toast_options);
-                toastElem.show()
+                toastShow("success", "profile updated")
 
                 document.getElementById("Home").style.display = "block";
                 document.getElementById("editProfileForm").style.display = "none";
