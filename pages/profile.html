@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Cool alert code -->
+    <script src="../js/sweetalert2.js"></script>
+    <!-- Fontawesome for icons -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+    <!-- Nice Font -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito:400,700" rel="stylesheet">
+    <title>Home</title>
+</head>
+<body class="containter">
+    <div class="toast toastself" role="alert" aria-live="assertive" aria-atomic="true" id="liveToast">
+        <div class="toast-header">
+          <img src="../images/firebase_logo.png" class="rounded me-2" alt="..." width="20" height="20">
+          <strong class="me-auto">MonoTrade</strong>
+          <small class="text-body-secondary">just now</small>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            ✅ Profile updated
+        </div>
+    </div>
+    <div id="Home">
+        Name: <span id="userPfFullName">Name</span><br>
+        Surname: <span id="userPfSurname">surname</span><br><br>
+        <p id="userPfBio">Profile biography</p>
+        <div id="PicList">
+            <!--<img src="test" id="profilePic" height="125px"width="200px"/>-->
+        </div> 
+        <img src="../images/defPP.png" id="profilePic" class="profilePic"/>
+        <button type="button" class="btn btn-outline-primary text-uppercase" onclick="showEditProfileForm()">Edit Profile</button>
+        <button type="button" class="btn btn-outline-secondary text-uppercase" id="sign_Out">Sign Out</button>
+    </div>
+
+    <div id="editProfileForm" class="editProfileForm">
+        <h2 class="h2 text-center text-dark mb-3">Edit Profile</h2>
+        <div class="form-group">
+            <label for="userFullName">Name<span class="text-danger ml-1">*</span></label>
+            <input type="text" class="form-control" id="userFullName" onblur="checkUserFullName()" placeholder="Niek">
+            <small id="userFullNameError" class="form-text text-danger">Please fill the field.</small>
+        </div>
+        <div class="form-group">
+            <label for="userSurname">Surname<span class="text-danger ml-1">*</span></label>
+            <input type="text" class="form-control" id="userSurname" onblur="checkUserSurname()" placeholder="Beast">
+            <small id="userSurnameError" class="form-text text-danger">Please fill the field.</small>
+        </div>
+        <div class="form-group">
+            <label for="userBio">Biography</label>
+            <textarea class="form-control" id="userBio" rows="4" onblur="checkUserBio()"></textarea>
+            <small id="userBioError" class="form-text text-danger">Please fill the field.</small>
+        </div>
+        <div class="form-group">
+            <label for="formFile" class="form-label">Default file input example</label>
+            <input class="form-control" type="file" id="formFile">
+          </div>
+        <div class="d-grid gap-2">
+            <button type="button" class="btn btn-outline-primary text-uppercase mt-3" id="savePorfile">Save</button>
+            <button type="button" class="btn btn-outline-secondary text-uppercase" onclick="hideEditProfileForm()">Cancel</button>
+        </div>
+    </div>
+
+<script src="../js/funcs.js"></script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-analytics.js";
+    import { 
+        getAuth, 
+        onAuthStateChanged, 
+        signOut
+    } from 'https://www.gstatic.com/firebasejs/9.19.1/firebase-auth.js'
+    import { 
+        getDatabase,
+        update,
+        ref as ref_database,
+        child,
+        onValue
+    } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js";
+    import { 
+        getStorage,
+        ref as ref_storage,
+        uploadBytes,
+        getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-storage.js";
+    const firebaseConfig = {
+        apiKey: "AIzaSyCXKDlb8OvdzM73EW5JxA3xIn9xoQumieA",
+        authDomain: "whatsreal-278e9.firebaseapp.com",
+        databaseURL: "https://whatsreal-278e9-default-rtdb.firebaseio.com",
+        projectId: "whatsreal-278e9",
+        storageBucket: "whatsreal-278e9.appspot.com",
+        messagingSenderId: "628842144986",
+        appId: "1:628842144986:web:2e6cfd6dccb64d97a9f1e3",
+        measurementId: "G-MNK3E7DXC0"
+    };
+    
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const auth = getAuth(app);
+    const storage = getStorage();
+    const analytics = getAnalytics(app);
+    // xxxxxxxxxx Get data from server and show in the page xxxxxxxxxx
+    function refresh() {
+        let user = auth.currentUser;
+        let uid
+        if(user != null){
+            uid = user.uid;
+        }
+        //set(child(ref(database), uid), userData)
+        //let firebaseRefKey = firebase.database().ref().child(uid);
+        const refKey = child(ref_database(database), uid)
+        onValue(refKey, (dataSnapShot)=>{
+            document.getElementById("userPfFullName").innerHTML = dataSnapShot.val().userFullName;
+            document.getElementById("userPfSurname").innerHTML = dataSnapShot.val().userSurname;
+            // userEmail = dataSnapShot.val().userEmail;
+            // userPassword = dataSnapShot.val().userPassword;
+            document.getElementById("userPfBio").innerHTML = dataSnapShot.val().userBio;
+            //showImages();
+            showPPic();
+        })
+    }
+    onAuthStateChanged(auth, (user)=>{
+        if (user) {
+        //   User is signed in.
+            refresh();
+        } else {
+        //   No user is signed in.
+            window.location.replace("../index.html");
+        }
+    });
+    // xxxxxxxxxx Save profile and update database xxxxxxxxxx
+    savePorfile.addEventListener('click', (e) => {
+        let userFullName = document.getElementById("userFullName").value 
+        let userSurname = document.getElementById("userSurname").value  
+        let userBio = document.getElementById("userBio").value
+        var userFullNameFormate = /^([A-Za-z.\s_-])/; 
+        var checkUserFullNameValid = userFullName.match(userFullNameFormate);
+        var file = document.getElementById("formFile").files[0];
+        if(checkUserFullNameValid == null){
+            return checkUserFullName();
+        }else if(userSurname === ""){
+            return checkUserSurname();
+        }else{
+            let user = auth.currentUser;
+            let uid;
+            if(user != null){
+                uid = user.uid;
+            }
+            if(file != undefined) {
+                const storageRef = ref_storage(storage, `ProfilePics/${uid}`);
+                uploadBytes(storageRef, file).then((snapshot) => {
+                    console.log('Uploaded a blob or file!');
+                });
+            }
+            var userData = {
+                userFullName: userFullName,
+                userSurname: userSurname,
+                userBio: userBio,
+            }
+            update(child(ref_database(database), uid), userData).then((value) => {
+                var toast_options = {
+                    animation : true,
+                    delay : 5000
+                };
+                var toastHTMLelem = document.getElementById("liveToast");
+                var toastElem = new bootstrap.Toast(toastHTMLelem, toast_options);
+                toastElem.show()
+
+                document.getElementById("Home").style.display = "block";
+                document.getElementById("editProfileForm").style.display = "none";
+                
+            })
+        }
+    });
+    sign_Out.addEventListener('click', (e) => {
+        signOut(auth)
+    });
+
+    function getImg(uid) {
+        let url = getDownloadURL(ref_storage(storage, `ProfilePics/${uid}`)).catch(function(error) {
+            let errorMessage = error.message;
+            console.log(errorMessage)
+            return "../images/defPP.png"
+        });
+        return url
+    }
+    async function showImages() {
+        // later do something like: for every image uid in friends folder add img element if you want to show friends profile pics on page.
+        var elem = document.createElement("img");
+        elem.setAttribute("src", await getImg(auth.currentUser.uid));
+        elem.setAttribute("height", "200");
+        elem.setAttribute("width", "200");
+        elem.setAttribute("alt", "Flower");
+        document.getElementById("PicList").appendChild(elem);
+    }
+    async function showPPic() {
+        var img_elem = document.getElementById("profilePic")
+        img_elem.setAttribute("src", await getImg(auth.currentUser.uid))
+    }
+</script>
+</body>
+</html>
