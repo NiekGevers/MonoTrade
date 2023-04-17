@@ -117,3 +117,33 @@ function hideEditProfileForm(){
     document.getElementById("Home").style.display = "block";
     document.getElementById("editProfileForm").style.display = "none";
 }
+
+function toastShow(type, mess) {
+    var toast_options = {
+        animation : true,
+        delay : 5000
+    };
+    var toastHTMLelem = document.getElementById("liveToast");
+    var toastImg = document.getElementById("toastImg")
+    document.getElementById("toastMess").innerHTML = mess
+    var img_src = (type == "succes" ? "../images/check-circle-fill.svg" : "../images/x-circle-fill.svg")
+    if (type == "success") {
+        img_src = "../images/check-circle-fill.svg"
+    } else if (type == "error") {
+        img_src = "../images/x-circle-fill.svg"
+    } else if (type == "warning") {
+        img_src = "../images/warn-circle-fill.svg"
+    } else if (type == "info") {
+        img_src = "../images/info-circle-fill.svg"
+    } else {
+        swal({
+            type: 'error',
+            title: 'Error',
+            text: "invalid toast image type",
+        })
+    }
+    toastImg.setAttribute("src", img_src)
+
+    var toastElem = new bootstrap.Toast(toastHTMLelem, toast_options);
+    toastElem.show()
+}

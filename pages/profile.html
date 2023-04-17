@@ -21,15 +21,36 @@
 <body class="containter">
     <div class="toast toastself" role="alert" aria-live="assertive" aria-atomic="true" id="liveToast">
         <div class="toast-header">
-          <img id="toastImg" src="..." class="rounded me-2" alt="..." width="20" height="20">
+          <img id="toastImg" src="../images/image-not-found-icon.svg" class="rounded me-2" alt="..." width="20" height="20">
           <strong class="me-auto">MonoTrade</strong>
           <small class="text-body-secondary">just now</small>
           <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
         <div class="toast-body" id="toastMess">
-            Profile updated
+            Toast body
         </div>
     </div>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">
+            <img src="../images/shrek.png" width="30" height="30" alt="logo">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav navbarul">
+            <li class="nav-item active">
+              <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Features</a>
+            </li>
+            <li class="nav-item profilePicli">
+                <img src="../images/defPP.png" id="profilePic" class="profilePic" onclick="toastShow('info', 'Pic-clicked')"/>
+            </li>
+          </ul>
+        </div>
+    </nav>
     <div id="Home">
         Name: <span id="userPfFullName">Name</span><br>
         Surname: <span id="userPfSurname">surname</span><br><br>
@@ -37,7 +58,6 @@
         <div id="PicList">
             <!--<img src="test" id="profilePic" height="125px"width="200px"/>-->
         </div> 
-        <img src="../images/defPP.png" id="profilePic" class="profilePic"/>
         <button type="button" class="btn btn-outline-primary text-uppercase" onclick="showEditProfileForm()">Edit Profile</button>
         <button type="button" class="btn btn-outline-secondary text-uppercase" id="sign_Out">Sign Out</button>
     </div>
@@ -83,7 +103,8 @@
         update,
         ref as ref_database,
         child,
-        onValue
+        onValue,
+        serverTimestamp
     } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js";
     import { 
         getStorage,
@@ -109,60 +130,29 @@
     const storage = getStorage();
     const analytics = getAnalytics(app);
     // xxxxxxxxxx Get data from server and show in the page xxxxxxxxxx
-    function refresh() {
-        let user = auth.currentUser;
-        let uid
-        if(user != null){
-            uid = user.uid;
-        }
-        //set(child(ref(database), uid), userData)
-        //let firebaseRefKey = firebase.database().ref().child(uid);
-        const refKey = child(ref_database(database), uid)
-        onValue(refKey, (dataSnapShot)=>{
-            document.getElementById("userPfFullName").innerHTML = dataSnapShot.val().userFullName;
-            document.getElementById("userPfSurname").innerHTML = dataSnapShot.val().userSurname;
-            // userEmail = dataSnapShot.val().userEmail;
-            // userPassword = dataSnapShot.val().userPassword;
-            document.getElementById("userPfBio").innerHTML = dataSnapShot.val().userBio;
-            //showImages();
-            showPPic();
-        })
-    }
 
-    function toastShow(type, mess) {
-        var toast_options = {
-            animation : true,
-            delay : 5000
-        };
-        var toastHTMLelem = document.getElementById("liveToast");
-        var toastImg = document.getElementById("toastImg")
-        document.getElementById("toastMess").innerHTML = mess
-        var img_src = (type == "succes" ? "../images/check-circle-fill.svg" : "../images/x-circle-fill.svg")
-        if (type == "success") {
-            img_src = "../images/check-circle-fill.svg"
-        } else if (type == "error") {
-            img_src = "../images/x-circle-fill.svg"
-        } else if (type == "warning") {
-            img_src = "../images/warn-circle-fill.svg"
-        } else if (type == "info") {
-            img_src = "../images/info-circle-fill.svg"
-        } else {
-            swal({
-                type: 'error',
-                title: 'Error',
-                text: "invalid toast image type",
-            })
-        }
-        toastImg.setAttribute("src", img_src)
-
-        var toastElem = new bootstrap.Toast(toastHTMLelem, toast_options);
-        toastElem.show()
-    }
-    
     onAuthStateChanged(auth, (user)=>{
         if (user) {
         //   User is signed in.
-            refresh();
+            let user = auth.currentUser;
+            let uid
+            if(user != null){
+                uid = user.uid;
+            }
+            //set(child(ref(database), uid), userData)
+            //let firebaseRefKey = firebase.database().ref().child(uid);
+            const refKey = child(ref_database(database), uid)
+            // onValue runs everythime the database changes.
+            onValue(refKey, (dataSnapShot)=>{
+                console.log("change to database")
+                document.getElementById("userPfFullName").innerHTML = dataSnapShot.val().userFullName;
+                document.getElementById("userPfSurname").innerHTML = dataSnapShot.val().userSurname;
+                // userEmail = dataSnapShot.val().userEmail;
+                // userPassword = dataSnapShot.val().userPassword;
+                document.getElementById("userPfBio").innerHTML = dataSnapShot.val().userBio;
+                //showImages();
+                showPPic();
+        })
         } else {
         //   No user is signed in.
             window.location.replace("../index.html");
@@ -186,24 +176,30 @@
             if(user != null){
                 uid = user.uid;
             }
-            if(file != undefined) {
+            function uploadPic() {
                 const storageRef = ref_storage(storage, `ProfilePics/${uid}`);
                 uploadBytes(storageRef, file).then((snapshot) => {
                     console.log('Uploaded a blob or file!');
-                });
+                }).then((value) => {
+                    var resetfile = document.getElementById("formFile")
+                    resetfile.value = null
+                    updateDatabase()
+                })
             }
-            var userData = {
-                userFullName: userFullName,
-                userSurname: userSurname,
-                userBio: userBio,
+            function updateDatabase() {
+                var userData = {
+                    userFullName: userFullName,
+                    userSurname: userSurname,
+                    userBio: userBio,
+                    lastChange: Date(serverTimestamp())
+                }
+                update(child(ref_database(database), uid), userData).then((value) => {
+                    toastShow("success", "profile updated")
+                    document.getElementById("Home").style.display = "block";
+                    document.getElementById("editProfileForm").style.display = "none";
+                })  
             }
-            update(child(ref_database(database), uid), userData).then((value) => {
-                toastShow("success", "profile updated")
-
-                document.getElementById("Home").style.display = "block";
-                document.getElementById("editProfileForm").style.display = "none";
-                
-            })
+            (file != undefined ? uploadPic() : updateDatabase());
         }
     });
     sign_Out.addEventListener('click', (e) => {
@@ -218,19 +214,21 @@
         });
         return url
     }
-    async function showImages() {
-        // later do something like: for every image uid in friends folder add img element if you want to show friends profile pics on page.
-        var elem = document.createElement("img");
-        elem.setAttribute("src", await getImg(auth.currentUser.uid));
-        elem.setAttribute("height", "200");
-        elem.setAttribute("width", "200");
-        elem.setAttribute("alt", "Flower");
-        document.getElementById("PicList").appendChild(elem);
-    }
     async function showPPic() {
+        console.log("showPPic")
         var img_elem = document.getElementById("profilePic")
         img_elem.setAttribute("src", await getImg(auth.currentUser.uid))
     }
+    //async function showImages() {
+        // later do something like: for every image uid in friends folder add img element if you want to show friends profile pics on page.
+        //var elem = document.createElement("img");
+        //elem.setAttribute("src", await getImg(auth.currentUser.uid));
+        //elem.setAttribute("height", "200");
+        //elem.setAttribute("width", "200");
+        //elem.setAttribute("alt", "Flower");
+        //document.getElementById("PicList").appendChild(elem);
+    //}
+
 </script>
 </body>
 </html>

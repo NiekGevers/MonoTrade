@@ -22,24 +22,36 @@ a{
 }
 .editProfileForm {
     align-items: center;
-    position: absolute;
-    width: 35%;
-    height: 100%;
-    left:34%;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
 }
+.navbarul {
+    width:100%;
+    height: auto;
+    align-items: center;
+}
+
 .profilePic {
-    position: absolute;
-    right:0;
+    float: right;
     top:0;
-    width:100px;
-    height:100px;
+    width:65px;
+    height:65px;
     border-style: solid;
     border-radius: 100px;
     background-attachment: fixed;
 }
+.profilePic:hover {
+    cursor: pointer;
+}
+.profilePicli {
+    float:right;
+    width:100%
+}
 .toastself {
     position:absolute;
     margin: 5px;
+    bottom:0;
     right:0;
     z-index: 1;
 }
