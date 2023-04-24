@@ -173,6 +173,7 @@
         }else if(userSurname === ""){
             return checkUserSurname();
         }else{
+            savePorfile.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span class="visually-hidden">Loading...</span>';
             let user = auth.currentUser;
             let uid;
             if(user != null){
@@ -197,6 +198,7 @@
                 }
                 update(child(ref_database(database), uid), userData).then((value) => {
                     toastShow("success", "profile updated")
+                    savePorfile.innerHTML = "Save";
                     document.getElementById("Home").style.display = "block";
                     document.getElementById("editProfileForm").style.display = "none";
                 })  
